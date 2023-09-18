@@ -1,6 +1,5 @@
 <script setup>
-const people = ref([]);
-const selected = ref([]);
+// const people = ref([]);
 
 const columns = [
   {
@@ -21,11 +20,11 @@ const columns = [
     key: "email",
     label: "Email",
     sortable: true,
-    direction: "desc",
   },
   {
     key: "role",
     label: "Role",
+    direction: "desc",
   },
   {
     key: "actions",
@@ -48,39 +47,64 @@ const items = (row) => [
   ],
 ];
 
-const getData = async () => {
-  try {
-    const response = await fetch("http://localhost:9999/people");
+// const getData = async () => {
+//   try {
+//     const response = await fetch("http://localhost:9999/people");
 
-    if (!response.ok) {
-      throw new Error(`Error! status: ${response.status}`);
-    }
+//     if (!response.ok) {
+//       throw new Error(`Error! status: ${response.status}`);
+//     }
 
-    const data = await response.json();
-    people.value = data;
-  } catch (error) {
-    console.log(error);
-  }
-};
+//     const data = await response.json();
+//     people.value = data;
+//   } catch (error) {
+//     console.log(error);
+//   }
+// };
 
-console.log("test");
+// onMounted(() => {
+//   getData();
+// });
 
-onMounted(() => {
-  getData();
-});
+const { pending, data: people } = await useLazyAsyncData("people", () =>
+  $fetch("http://localhost:9999/people")
+);
 
 const toAnotherPage = (row) => {
   navigateTo("/abc/" + row);
 };
 
-const deleteRow = (row) => {
-  console.log("deleted row ", row);
+const deleteRow = async (id) => {
+  try {
+    const result = confirm("apakah anda yakin?");
+
+    if (result) {
+      const response = await fetch("http://localhost:9999/people/" + id, {
+        method: "DELETE",
+      });
+      people.value = people.value.filter((data) => data.id !== id);
+    }
+  } catch (error) {
+    console.log(error);
+  }
 };
 </script>
 
 <template>
   <div class="max-w-7xl mx-auto p-8">
-    <UTable :rows="people" :columns="columns">
+    <div class="flex justify-end mb-6">
+      <UButton size="lg" to="/abc/create"> Create Data</UButton>
+    </div>
+
+    <UTable
+      :rows="people"
+      :columns="columns"
+      :loading="pending"
+      :loading-state="{
+        icon: 'i-heroicons-arrow-path-20-solid',
+        label: 'Loading...',
+      }"
+    >
       <template #actions-data="{ row }">
         <UDropdown :items="items(row)">
           <UButton

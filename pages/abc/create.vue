@@ -6,7 +6,7 @@
           <h3
             class="text-base font-semibold leading-6 text-gray-900 dark:text-white"
           >
-            Edit Data
+            Create Data
           </h3>
 
           <UButton
@@ -17,7 +17,7 @@
         </div>
       </template>
 
-      <div v-show="dataloaded">
+      <div>
         <UForm :schema="schema" :state="state" @submit="submitData">
           <UFormGroup size="lg" label="Name" name="name" class="mb-6">
             <UInput
@@ -52,12 +52,8 @@
             />
           </UFormGroup>
 
-          <UButton size="lg" type="submit"> Update </UButton>
+          <UButton size="lg" type="submit"> Save </UButton>
         </UForm>
-      </div>
-
-      <div v-show="!dataloaded">
-        <h1>LOADING</h1>
       </div>
     </UCard>
   </UContainer>
@@ -66,8 +62,6 @@
 <script setup>
 import { object, string } from "yup";
 
-const { id } = useRoute().params;
-const dataloaded = ref(false);
 const ui = {
   base: "mx-auto",
   padding: "px-4 sm:px-6 lg:px-8 mt-8",
@@ -87,29 +81,10 @@ const schema = object({
   name: string().required("Nama tidak boleh kosong"),
 });
 
-async function getData() {
-  try {
-    const response = await fetch("http://localhost:9999/people/" + id);
-
-    if (!response.ok) {
-      throw new Error(`Error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    state.value = data;
-
-    dataloaded.value = true;
-
-    console.log("get data", state.value);
-  } catch (error) {
-    console.log(error);
-  }
-}
-
 const submitData = async (submit) => {
   try {
-    const response = await fetch("http://localhost:9999/people/" + id, {
-      method: "PUT",
+    const response = await fetch("http://localhost:9999/people/", {
+      method: "POST",
       headers: {
         "Content-type": "application/json",
       },
@@ -124,10 +99,6 @@ const submitData = async (submit) => {
     console.log(error);
   }
 };
-
-onMounted(() => {
-  getData();
-});
 </script>
 
 <style lang="scss" scoped></style>
